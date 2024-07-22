@@ -1,33 +1,46 @@
-<script setup>
-import { ref } from 'vue'
+<script setup lang="ts">
+import MaterialThemeProvider from './components/MaterialThemeProvider.vue'
+import Header from './components/Header.vue'
+import Compute from './components/Compute.vue'
+import HctPicker from './components/HctPicker.vue'
+import { inject } from 'vue'
+import { ThemeService, ThemeServiceSymbol } from './services/theme.service'
 
-const v=ref(0);//飞船的速度（m/s)
-const t=ref(0);//飞船外时间（s）
-const x=ref(0);//飞船走过的距离（m）
-const t2=ref(0);//飞船内时间(s)
-const c=ref(299792458);//光速
-
-function Lorentz(){
-  x.value=v.value*t.value;
-  t2.value=(t.value-(v.value/c.value**2*x.value))/Math.sqrt(1-(v.value**2/(c.value**2)));
-  //洛伦兹变换，将飞船外的物理量变换为以飞船内为参考系
-};
-
+const theme = inject<ThemeService>(ThemeServiceSymbol)!
 </script>
 
 <template>
-  飞船的速度（m/s）：<input v-model="v"/><br>
-  飞船外时间（s）:<input v-model="t"><br>
-  小说设定的光速（默认是299792458m/s）：<input v-model="c"><br>
-  
-  <button @click="Lorentz()">开始计算</button><br>
+  <MaterialThemeProvider
+    :is-dark="theme.isDark.value"
+    :source-color-hct-raw="theme.hctRaw.value"
+    class="surface min-h-svh overflow-auto"
+  >
 
-  飞船内时间（s）：{{ t2 }}<br>
-飞船走过的距离（m）:{{ x }}<br>
-  
+    <Header>
+      <template #headline>Twin_paradoxes-of-Lorenz-algorithm</template>
+      <template #actions>
+        <md-icon-button @click="() => theme.isDark.value = !theme.isDark.value">
+          <md-icon>{{ theme.isDark.value ? 'light_mode' : 'dark_mode' }}</md-icon>
+        </md-icon-button>
+        <HctPicker
+          @hct-change="(hct) => theme.hctRaw.value = hct"
+          :default-chroma="theme.hctRaw.value.chroma"
+          :default-hue="theme.hctRaw.value.hue"
+          :default-tone="theme.hctRaw.value.tone"
+        ></HctPicker>
+      </template>
+    </Header>
+
+    <main class="content-view">
+      <Compute></Compute>
+    </main>
+
+  </MaterialThemeProvider>
 
 </template>
 
 <style scoped>
-
+.content-view {
+  @apply container p-8 md:p-16 mx-auto lg:max-w-3xl;
+}
 </style>
